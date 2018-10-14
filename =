@@ -1,0 +1,19 @@
+#!/usr/bin/env lua
+local args={...}
+local code=''
+local load=load or loadstring
+local i, v
+for i, v in ipairs(args) do
+	if i~=1 then
+		code=code..' '..v
+	else
+		code=v
+	end
+end
+code='return (function() return ('..code..') end)()'
+local fn, err=load(code)
+if fn then
+	print(fn())
+else
+	print('Err:', err)
+end

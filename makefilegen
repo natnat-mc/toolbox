@@ -1,0 +1,146 @@
+#!/usr/bin/env lua
+local args={...}
+
+local dir=args[1] or '.'
+local name=args[2] or 'main'
+local cc=args[3] or 'gcc'
+
+local cflags='-Wall -Wextra'
+
+local ccommand='$(CC) $(CFLAGS) -o $@ $< -c'
+local ldcommand='$(CC) $(CFLAGS) -o $@ $^'
+
+local srcreg='.c[cx]*$'
+local headerreg='.h[hx]*'
+local includereg='^#include "([^"]+)"'
+
+-- list all files
+local files={}
+local deps={}
+local sources={}
+local headers={}
+local objects={}
+for file in io.popen('ls -1 "'..dir..'"'):lines() do
+	files[file]=true
+	deps[file]={}
+	if file:match(srcreg) then
+		table.insert(sources, file)
+	end
+	if file:match(headerreg) then
+		table.insert(headers, file)
+	end
+end
+
+-- find all dependencies
+local function finddeps(file)
+	local fd=io.open(file, 'r')
+	for line in fd:lines() do
+		local include=line:match(includereg)
+		if include and files[include] then
+			table.insert(deps[file], include)
+		end
+	end
+end
+for i, src in ipairs(sources) do
+	finddeps(src)
+end
+for i, header in ipairs(sources) do
+	finddeps(header)
+end
+
+-- create rules
+local rules={}
+local function walkdeps(file, d)
+	d=d or {}
+	if d[file] then
+		return d
+	end
+	for i, f in pairs(deps[file]) do
+		d[f]=true
+		walkdeps(f, d)
+	end
+	return d
+end
+local function getobject(source)
+	local obj=source:gsub(srcreg, '.o')
+	for i, v in ipairs(objects) do
+		if v==obj then
+			return obj
+		end
+	end
+	table.insert(objects, obj)
+	return obj
+end
+table.insert(rules, {
+	target='all',
+	deps={'$(NAME)'}
+})
+for i, file in ipairs(sources) do
+	local rule={
+		target=getobject(file),
+		deps={file},
+		command={ccommand}
+	}
+	for d in pairs(walkdeps(file)) do
+		table.insert(rule.deps, d)
+	end
+	table.insert(rules, rule)
+end
+table.insert(rules, {
+	target='$(NAME)',
+	deps=objects,
+	command={ldcommand}
+})
+table.insert(rules, {
+	target='clean',
+	command={'rm -f *.o'}
+})
+table.insert(rules, {
+	target='mrproper',
+	deps={'clean'},
+	command={'rm -f $(NAME)'}
+})
+table.insert(rules, {
+	target='rebuild',
+	deps={'mrproper', 'all'}
+})
+table.insert(rules, {
+	target='.PHONY',
+	deps={'all', 'rebuild', 'clean', 'mrproper'}
+})
+
+-- create variables
+local vars={}
+table.insert(vars, {'NAME', name})
+table.insert(vars, {'CC', cc})
+table.insert(vars, {'CFLAGS', cflags})
+
+-- ask for confirmation
+if files['Makefile'] then
+	local ok
+	while not ok do
+		io.write('A Makefile already exists, overwrite it? [Y/n]')
+		local result=io.read('*l'):lower()
+		if result=='n' then
+			os.exit(1)
+		elseif result=='' or result=='y' then
+			ok=1
+		end
+	end
+end
+
+-- build Makefile
+local fd=io.open(dir..'/Makefile', 'w')
+for i, var in ipairs(vars) do
+	fd:write(var[1]..' = '..var[2]..'\n')
+end
+fd:write('\n\n')
+
+for i, rule in ipairs(rules) do
+	fd:write(rule.target..': '..table.concat(rule.deps or {}, ' ')..'\n')
+	for k, command in ipairs(rule.command or {}) do
+		fd:write('\t'..command..'\n')
+	end
+	fd:write('\n')
+end
+fd:close()

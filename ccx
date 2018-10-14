@@ -1,0 +1,27 @@
+#!/usr/bin/env lua
+local args={...}
+
+local cc='g++'
+local cflags={'-Wall', '-Wextra'}
+local reg="^[%l%u]+%.c[pc]*$"
+
+local function ls(dir)
+	return io.popen('ls -1A '..dir):lines()
+end
+
+local dir=args[1] or '.'
+local out=args[2] or dir..'/main'
+cc=args[3] or cc
+
+local files={}
+for a in ls(dir) do
+	if a:match(reg) then
+		table.insert(files, '"'..dir..'/'..a..'"')
+	end
+end
+
+local command=cc..' '..table.concat(cflags, ' ')..' -o "'..out..'" '..table.concat(files, ' ')
+io.write(command..'\n')
+
+os.execute(command)
+io.write('\n')
