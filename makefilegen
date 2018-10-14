@@ -10,8 +10,8 @@ local cflags='-Wall -Wextra'
 local ccommand='$(CC) $(CFLAGS) -o $@ $< -c'
 local ldcommand='$(CC) $(CFLAGS) -o $@ $^'
 
-local srcreg='.c[cx]*$'
-local headerreg='.h[hx]*'
+local srcreg='%.c[cp]*$'
+local headerreg='%.h[hp]*$'
 local includereg='^#include "([^"]+)"'
 
 -- list all files
@@ -28,6 +28,20 @@ for file in io.popen('ls -1 "'..dir..'"'):lines() do
 	end
 	if file:match(headerreg) then
 		table.insert(headers, file)
+	end
+end
+
+-- sanity check
+if #sources==0 then
+	local ok
+	while not ok do
+		io.write('There aren\'t any source files, continue anyway? [Y/n] ')
+		local result=io.read('*l'):lower()
+		if result=='n' then
+			os.exit(1)
+		elseif result=='y' or result=='' then
+			ok=true
+		end
 	end
 end
 
