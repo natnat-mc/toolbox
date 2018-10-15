@@ -6,7 +6,7 @@ A small calculator on the command line.
 Concatenates all it arguments and executes the resulting code.  
 Examples:
 - ```= 2+2```
-- ```= sqrt(2)+1```
+- ```= "sqrt(2)+1"```
 - ```= `stat bin/= | grep Size | cut -d ' ' -f 4` *8```
 
 ## `makefilegen`
