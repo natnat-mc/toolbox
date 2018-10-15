@@ -22,3 +22,15 @@ Compiles all the C/C++ source files in a directory.
 Examples:
 - ```ccx . main g++``` (default)
 - ```ccx var/src/prompt bin/prompt gcc``` (compile everything from `var/src/prompt` into `bin/prompt` with `gcc`)
+
+## `todo`
+Because we're all very organized here. 
+Handles a small todo stack. 
+Examples:
+- ```todo ls``` (list all todos)
+- ```todo n``` (counts the ammount of todos)
+- ```todo peek``` (reads the last todo)
+- ```todo pop``` (reads and removes the last todo)
+- ```todo add Hi, I'
+m on several lines'``` (adds a todo to the list)
+

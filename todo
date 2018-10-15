@@ -1,0 +1,98 @@
+#!/usr/bin/env lua
+
+-- options
+local todofile=io.popen('env | grep HOME= | cut -d "=" -f 2'):lines()()..'/.todofile'
+
+-- read command line arguments
+local args={...}
+local command=table.remove(args, 1)
+local text=table.concat(args, ' ')
+
+-- functions to handle the file
+local function readfile()
+	local fd=io.open(todofile, 'r')
+	if not fd then
+		io.popen('touch "'..todofile..'"')
+		return {}
+	end
+	local values={}
+	for line in fd:lines() do
+		if #line~=0 then
+			table.insert(values, line)
+		end
+	end
+	return values
+end
+local function writefile(lines)
+	local fd=io.open(todofile, 'w')
+	fd:write(table.concat(lines, '\n'))
+	fd:close()
+end
+
+-- escaping and unescaping
+local function escape(str)
+	return str:gsub('\\', '\\\\'):gsub('\n', '\\n'):gsub('\r', '\\r')
+end
+local function unescape(str)
+	return str:gsub('\\\\', '\\'):gsub('\\n', '\n'):gsub('\\r', '\r')
+end
+
+-- subcommands
+local function pop()
+	local todos=readfile()
+	local todo=table.remove(todos)
+	if not todo then
+		io.stderr:write('No todos\n')
+		os.exit(1)
+	end
+	io.write(unescape(todo)..'\n')
+	writefile(todos)
+end
+local function peek()
+	local todos=readfile()
+	local todo=table.remove(todos)
+	if not todo then
+		io.stderr:write('No todos\n')
+		os.exit(1)
+	end
+	io.write(unescape(todo)..'\n')
+end
+local function push()
+	local fd=io.open(todofile, 'a')
+	fd:write('\n'..escape(text))
+	fd:close()
+end
+local function list()
+	local todos=readfile()
+	io.write(#todos..' todos:\n')
+	for i, todo in ipairs(todos) do
+		io.write(i..': '..unescape(todo)..'\n')
+	end
+end
+local function count()
+	io.write(#readfile()..'\n')
+end
+
+local subs={}
+subs.pop=pop
+subs.remove=pop
+subs.peek=peek
+subs.push=push
+subs.add=push
+subs.list=list
+subs.ls=list
+subs.count=count
+subs.n=count
+
+-- execute subcommand
+local sub=subs[command]
+if not sub then
+	io.stderr:write('Usage: todo <subcommand> [text]\n')
+	io.stderr:write('Available subcommands:')
+	for k in pairs(subs) do
+		io.stderr:write(' '..k)
+	end
+	io.stderr:write('\n')
+	os.exit(1)
+end
+sub()
