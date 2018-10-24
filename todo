@@ -1,7 +1,7 @@
 #!/usr/bin/env lua
 
 -- options
-local todofile=io.popen('env | grep HOME= | cut -d "=" -f 2'):lines()()..'/.todofile'
+local todofile=io.popen('echo -n "$HOME"'):lines()()..'/.todofile'
 
 -- read command line arguments
 local args={...}
