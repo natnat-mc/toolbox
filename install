@@ -1,0 +1,91 @@
+#!/usr/bin/env lua
+
+-- ask the user a question
+local function prompt(question, default)
+	while true do
+		io.write(question)
+		io.write(" [")
+		io.write(default and 'Y' or 'y')
+		io.write("/")
+		io.write(default and 'n' or 'N')
+		io.write("] ")
+		local ans=io.read('*l'):lower()
+		if ans=='' then
+			return default
+		elseif ans=='y' then
+			return true
+		elseif ans=='n' then
+			return false
+		end
+	end
+end
+
+-- read arguments
+local args={...}
+local installdir=args[1] or io.popen('echo -n "$HOME"'):read('*a')..'/bin'
+
+-- make sure it's what the user wants
+io.write("Installing in \""..installdir.."\"\n")
+if not prompt("Is this okay?", true) then
+	os.exit(0)
+end
+
+-- create the directory if it doesn't exist
+if os.execute('[ -d "'..installdir..'" ]')~=0 then
+	if not prompt("Install directory doesn't exist. Create it?", true) then
+		os.exit(0)
+	end
+	if os.execute('mkdir -p "'..installdir..'"')~=0 then
+		io.stderr:write "Directory creation failed\n"
+		os.exit(1)
+	end
+end
+
+-- check if the install directory is in the path
+-- check the Lua version
+local defaultversion
+do
+	local randomname='toolboxcheck'..math.random()
+	local fd=io.open(installdir..'/'..randomname, 'w')
+	fd:write([[
+#!/usr/bin/env lua
+io.write("IT WORKS\n")
+io.write(_VERSION:match('%d%.%d+'))
+]])
+	fd:close()
+	os.execute('chmod 700 "'..installdir..'/'..randomname..'"')
+	local getline=io.popen(randomname):lines()
+	if getline()~="IT WORKS" then
+		if prompt "Directory is not in path, add it?" then
+			os.execute "echo >> ~/.profile"
+			os.execute("echo 'export PATH=\""..installdir..":$PATH\"' >> ~/.profile")
+		end
+	else
+		-- the path is already set
+		-- check the Lua version
+		defaultversion=getline()
+		getline()
+		
+		io.write "Install directory is already in path\n" 
+		io.write("Lua version is "..(defaultversion or 'unknown').."\n")
+	end
+	os.remove(installdir..'/'..randomname)
+end
+
+-- install all scripts individually
+local scripts={'=', 'ccx', 'makefilegen', 'todo'}
+for i, script in ipairs(scripts) do
+	local skip=false
+	if os.execute('[ -f "'..installdir..'/'..script..'" ]')==0 then
+		if not prompt("Script "..script.." is already present in "..installdir..", overwrite it?", false) then
+			skip=true
+		end
+	end
+	if not skip then
+		if os.execute('cp -a "'..script..'" "'..installdir..'"')==0 then
+			io.write("Successfully installed "..script.."\n")
+		else
+			io.stderr:write("Failed installing "..script.."\n")
+		end
+	end
+end
