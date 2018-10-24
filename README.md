@@ -31,6 +31,9 @@ Examples:
 - ```todo n``` (counts the ammount of todos)
 - ```todo peek``` (reads the last todo)
 - ```todo pop``` (reads and removes the last todo)
-- ```todo add Hi, I'
-m on several lines'``` (adds a todo to the list)
+-  
+```
+todo add Hi, I'
+m on several lines'
+``` (adds a todo to the list)
 
