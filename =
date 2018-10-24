@@ -1,7 +1,7 @@
 #!/usr/bin/env lua
 local args={...}
 local code=''
-local load=load or loadstring
+local load=loadstring or load
 local i, v
 for i, v in ipairs(args) do
 	if i~=1 then
