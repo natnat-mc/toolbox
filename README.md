@@ -36,12 +36,9 @@ Because we're all very organized here.
 Handles a small todo stack. 
 Examples:
 - ```todo ls``` (list all todos)
-- ```todo n``` (counts the ammount of todos)
+- ```todo n``` (counts the amount of todos)
 - ```todo peek``` (reads the last todo)
 - ```todo pop``` (reads and removes the last todo)
--  
-```
-todo add Hi, I'
-m on several lines'
-``` (adds a todo to the list)
-
+- ```todo push|add <message>``` (adds a new todo onto the stack)
+- ```todo shift``` (reads and removes the first todo)
+- ```todo unshift``` (adds a new todo under the stack)

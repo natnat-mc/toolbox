@@ -31,10 +31,10 @@ end
 
 -- escaping and unescaping
 local function escape(str)
-	return str:gsub('\\', '\\\\'):gsub('\n', '\\n'):gsub('\r', '\\r')
+	return (str:gsub('\\', '\\\\'):gsub('\n', '\\n'):gsub('\r', '\\r'))
 end
 local function unescape(str)
-	return str:gsub('\\\\', '\\'):gsub('\\n', '\n'):gsub('\\r', '\r')
+	return (str:gsub('\\\\', '\\'):gsub('\\n', '\n'):gsub('\\r', '\r'))
 end
 
 -- subcommands
@@ -42,7 +42,7 @@ local function pop()
 	local todos=readfile()
 	local todo=table.remove(todos)
 	if not todo then
-		io.stderr:write('No todos\n')
+		io.stderr:write 'No todos\n'
 		os.exit(1)
 	end
 	io.write(unescape(todo)..'\n')
@@ -52,7 +52,7 @@ local function peek()
 	local todos=readfile()
 	local todo=table.remove(todos)
 	if not todo then
-		io.stderr:write('No todos\n')
+		io.stderr:write 'No todos\n'
 		os.exit(1)
 	end
 	io.write(unescape(todo)..'\n')
@@ -61,6 +61,21 @@ local function push()
 	local fd=io.open(todofile, 'a')
 	fd:write('\n'..escape(text))
 	fd:close()
+end
+local function shift()
+	local todos=readfile()
+	local todo=table.remove(todos, 1)
+	if not todo then
+		io.stderr:write 'No todos\n'
+		os.exit(1)
+	end
+	io.write(unescape(todo)..'\n')
+	writefile(todos)
+end
+local function unshift()
+	local todos=readfile()
+	table.insert(todos, 1, escape(text))
+	writefile(todos)
 end
 local function list()
 	local todos=readfile()
@@ -79,6 +94,8 @@ subs.remove=pop
 subs.peek=peek
 subs.push=push
 subs.add=push
+subs.shift=shift
+subs.unshift=unshift
 subs.list=list
 subs.ls=list
 subs.count=count
@@ -87,8 +104,8 @@ subs.n=count
 -- execute subcommand
 local sub=subs[command]
 if not sub then
-	io.stderr:write('Usage: todo <subcommand> [text]\n')
-	io.stderr:write('Available subcommands:')
+	io.stderr:write 'Usage: todo <subcommand> [text]\n'
+	io.stderr:write 'Available subcommands:'
 	for k in pairs(subs) do
 		io.stderr:write(' '..k)
 	end
