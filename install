@@ -1,43 +1,7 @@
 #!/usr/bin/env lua
 
 require 'future'
-
--- ask the user a question
-local function prompt(question, default)
-	while true do
-		io.write(question)
-		io.write(" [")
-		io.write(default and 'Y' or 'y')
-		io.write("/")
-		io.write(default and 'n' or 'N')
-		io.write("] ")
-		local ans=io.read('*l'):lower()
-		if ans=='' then
-			return default
-		elseif ans=='y' then
-			return true
-		elseif ans=='n' then
-			return false
-		end
-	end
-end
-local function ask(q, a)
-	while true do
-		io.write(q)
-		io.write '\n'
-		for i, v in ipairs(a) do
-			io.write '\t'
-			io.write(i)
-			io.write ':\t'
-			io.write(v)
-			io.write '\n'
-		end
-		local line=tonumber(io.read '*l')
-		if line and line==math.floor(line) and a[line] then
-			return line, a[line]
-		end
-	end
-end
+require 'interactive'
 
 -- read arguments
 local args={...}
@@ -109,13 +73,13 @@ if defaultversion~=5.3 then
 	elseif ans==3 then
 		rewrite.future=true
 	elseif ans==4 then
-		rewrite.version=true
-		if not os.execute('install5.3') then
+		rewrite.version='toolbox-lua'
+		if not os.execute('install5.3 "'..installdir..'" toolbox-') then
 			io.stderr:write "Failed installing Lua 5.3\n"
 			os.exit(1)
 		end
 	elseif ans==5 then
-		rewrite.version=true
+		rewrite.version='lua5.3'
 	end
 end
 
@@ -123,7 +87,9 @@ end
 if next(rewrite) then
 	io.write "This script will apply the following changes to the binaries:\n"
 	if rewrite.version then
-		io.write "\tChange the shebang to force usage of Lua 5.3\n"
+		io.write "\tChange the shebang to force usage of "
+		io.write(rewrite.version)
+		io.write '\n'
 	end
 	if rewrite.future then
 		io.write "\tEmbed the future lib inside the scripts\n"

@@ -1,0 +1,118 @@
+#!/usr/bin/env lua
+
+require 'future'
+require 'interactive'
+
+local url=[[https://www.lua.org/ftp/lua-5.3.5.tar.gz]]
+local args={...}
+local out=args[1] or [[$HOME/bin]]
+local prefix=args[2] or ''
+local suffix=args[3] or ''
+
+-- remove residual files
+os.execute 'rm -rf ./lua*'
+
+-- list the files
+local function ls(dir)
+	local files={}
+	for a in io.popen('ls -1 "'..dir..'"'):lines() do
+		table.insert(files, a)
+	end
+	return files
+end
+local function lsrev(dir)
+	local files={}
+	for i, v in ipairs(ls(dir)) do
+		files[v]=true
+	end
+	return files
+end
+
+-- check which tool we can use to download the tarball
+local downloader=nil
+if os.execute 'which curl >/dev/null' then
+	downloader='curl'
+elseif os.execute 'which wget >/dev/null' then
+	downloader='wget'
+end
+
+-- download the tarball
+if downloader=='curl' then
+	if not os.execute('curl "'..url..'" > lua.tar.gz') then
+		io.stderr:write "Couldn't download the lua source tarball\n"
+		os.exit(1)
+	end
+elseif downloader=='wget' then
+	if not os.execute('wget -O lua.tar.gz "'..url..'"') then
+		io.stderr:write "Couldn't download the lua source tarball\n"
+		os.exit(1)
+	end
+else
+	io.stderr:write "Couldn't find any suitable downloading tool, please install curl or wget\n"
+	os.exit(1)
+end
+if os.execute '[ -f lua.tar.gz ]' then
+	io.write "Successfully downloaded source tarball\n"
+else
+	io.stderr:write "Cannot find downloaded tarball\n"
+	os.exit(1)
+end
+
+-- extract the tarball
+local outputdir=nil
+do
+	local before=lsrev('.')
+	if os.execute('tar xf lua.tar.gz') then
+		local after=ls('.')
+		for i, v in ipairs(after) do
+			if not before[v] then
+				outputdir=v
+			end
+		end
+	end
+end
+if not outputdir then
+	io.stderr:write "Couldn't extract the lua source tarball\n"
+	os.exit(1)
+else
+	if os.execute('mv "'..outputdir..'" lua') then
+		io.write "Successfully extracted the lua sources\n"
+	else
+		io.stderr:write "Couldn't rename extracted sources\n"
+		os.exit(1)
+	end
+end
+
+-- build lua
+if os.execute "cd lua && make linux" then
+	io.write "Successfully build lua 5.3\n"
+else
+	io.stderr:write "Couldn't build lua5.3\n"
+	os.exit(1)
+end
+
+-- install lua into the specified directory
+for i, target in ipairs {'lua', 'luac'} do
+	local source='lua/src/'..target
+	local dest=out..'/'..prefix..target..suffix
+	if os.execute('[ -f "'..dest..'" ]') then
+		if not prompt("File "..dest.." already exists. Overwrite it", true) then
+			os.exit(1)
+		end
+	end
+	if os.execute('cp "'..source..'" "'..dest..'"') then
+		io.write "Successfully installed "
+		io.write(target)
+		io.write " as "
+		io.write(dest)
+		io.write '\n'
+	else
+		io.stderr:write "Failed to install "
+		io.stderr:write(target)
+		io.stderr:write '\n'
+		os.exit(1)
+	end
+end
+
+-- remove residual files
+os.execute 'rm -rf ./lua*'
