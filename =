@@ -1,23 +1,15 @@
 #!/usr/bin/env lua
 local args={...}
-local code=''
+local code=table.concat(args, ' ')
 local load=loadstring or load
-local i, v
-for i, v in ipairs(args) do
-	if i~=1 then
-		code=code..' '..v
-	else
-		code=v
-	end
-end
-code=[[
 for k, v in pairs(math) do
 	if not _G[k] then
 		_G[k]=v
 	end
 end
+code=[[
 return (function()
-	return (]]..code..[[)
+	return (]]..(code or '0')..[[)
 end)()]]
 local fn, err=load(code)
 if fn then
