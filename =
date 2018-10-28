@@ -9,7 +9,7 @@ for k, v in pairs(math) do
 end
 code=[[
 return (function()
-	return (]]..(code or '0')..[[)
+	return (]]..(code~='' and code or '0')..[[)
 end)()]]
 local fn, err=load(code)
 if fn then
