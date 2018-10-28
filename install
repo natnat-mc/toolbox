@@ -76,7 +76,7 @@ io.write(_VERSION:match('%d%.%d+'))
 	local getline=io.popen(randomname):lines()
 	if getline()~="IT WORKS" then
 		if prompt "Directory is not in path, add it?" then
-			os.execute "echo >> ~/.profile"
+			os.execute 'echo >> ~/.profile'
 			os.execute("echo 'export PATH=\""..installdir..":$PATH\"' >> ~/.profile")
 		end
 	else
@@ -94,13 +94,13 @@ end
 -- check if we have to rewrite the scripts
 local rewrite={}
 if defaultversion~=5.3 then
-	io.write "Lua version is not 5.3, which could cause compatibility issues"
-	local ans=ask('What do you want to do?', {
-		'nothing',
-		'abort',
-		'install future lib',
-		'install Lua 5.3',
-		'force Lua 5.3'
+	io.write "Lua version is not 5.3, which could cause compatibility issues\n"
+	local ans=ask("What do you want to do?", {
+		"nothing",
+		"abort",
+		"install future lib",
+		"install Lua 5.3",
+		"force Lua 5.3"
 	})
 	if ans==1 then
 		-- good luck
@@ -111,7 +111,7 @@ if defaultversion~=5.3 then
 	elseif ans==4 then
 		rewrite.version=true
 		if not os.execute('install5.3') then
-			io.stderr:write 'Failed installing Lua 5.3\n'
+			io.stderr:write "Failed installing Lua 5.3\n"
 			os.exit(1)
 		end
 	elseif ans==5 then
@@ -121,14 +121,14 @@ end
 
 -- list everything we have to rewrite
 if next(rewrite) then
-	io.write 'This script will apply the following changes to the binaries:\n'
+	io.write "This script will apply the following changes to the binaries:\n"
 	if rewrite.version then
-		io.write '\tChange the shebang to force usage of Lua 5.3\n'
+		io.write "\tChange the shebang to force usage of Lua 5.3\n"
 	end
 	if rewrite.future then
-		io.write '\tEmbed the future lib inside the scripts\n'
+		io.write "\tEmbed the future lib inside the scripts\n"
 	end
-	if not prompt('Is this okay', true) then
+	if not prompt("Is this okay", true) then
 		os.exit(0)
 	end
 end
