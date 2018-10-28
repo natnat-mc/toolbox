@@ -74,7 +74,7 @@ if defaultversion~=5.3 then
 		rewrite.future=true
 	elseif ans==4 then
 		rewrite.version='toolbox-lua'
-		if not os.execute('install5.3 "'..installdir..'" toolbox-') then
+		if not os.execute('./install5.3 "'..installdir..'" toolbox-') then
 			io.stderr:write "Failed installing Lua 5.3\n"
 			os.exit(1)
 		end
