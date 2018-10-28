@@ -99,6 +99,33 @@ if next(rewrite) then
 	end
 end
 
+-- function to install a script
+local function install(script)
+	if not next(rewrite) then
+		return os.execute('cp -a "'..script..'" "'..installdir..'"')
+	end
+	local content={}
+	for line in io.lines(script) do
+		table.insert(content, line)
+	end
+	local output=installdir..'/'..script
+	if rewrite.version then
+		content[1]="#!/usr/bin/env "..rewrite.version
+	end
+	if rewrite.future then
+		local fd=io.open 'future.lua'
+		table.insert(content, 2, fd:read '*a')
+		fd:close()
+	end
+	local fd=io.open(output, 'w')
+	for i, line in ipairs(content) do
+		fd:write(line)
+		fd:write '\n'
+	end
+	fd:close()
+	return true
+end
+
 -- install all scripts individually
 local scripts={'=', 'ccx', 'makefilegen', 'todo'}
 for i, script in ipairs(scripts) do
@@ -109,7 +136,7 @@ for i, script in ipairs(scripts) do
 		end
 	end
 	if not skip then
-		if os.execute('cp -a "'..script..'" "'..installdir..'"') then
+		if install(script) then
 			io.write("Successfully installed "..script.."\n")
 		else
 			io.stderr:write("Failed installing "..script.."\n")
