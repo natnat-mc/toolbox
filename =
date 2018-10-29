@@ -1,16 +1,24 @@
 #!/usr/bin/env lua
+
+-- read arguments
 local args={...}
 local code=table.concat(args, ' ')
+if code=='' then
+	io.write '0\n'
+	os.exit(0)
+end
+
+-- compatibility with lua5.1
 local load=loadstring or load
+
+-- copy the math lib into _G
 for k, v in pairs(math) do
 	if not _G[k] then
 		_G[k]=v
 	end
 end
-code=[[return (]]..(code~='' and code or '0')..[[)]]
-local fn, err=load(code)
-if fn then
-	print(fn())
-else
-	print('Err:', err)
-end
+
+-- execute the code
+code=[[return (]]..code..[[)]]
+io.write(load(code)())
+io.write '\n'
