@@ -12,10 +12,12 @@ Then, the script will copy all the utilities into the destination directory, pro
 ### `=`
 A small calculator on the command line.  
 Concatenates all it arguments and executes the resulting code.  
+Can also read its arguments from stdin if called like `= -`  
 Examples:
 - ```= 2+2```
 - ```= "sqrt(2)+1"```
-- ```= `stat bin/= | grep Size | cut -d ' ' -f 4` *8```
+- ```= `stat bin/= | grep Size | cut -d ' ' -f 4` *8``
+- ```echo 2+2 | = -```
 
 ### `makefilegen`
 A small Makefile generator.  
@@ -42,3 +44,4 @@ Examples:
 - ```todo push|add <message>``` (adds a new todo onto the stack)
 - ```todo shift``` (reads and removes the first todo)
 - ```todo unshift``` (adds a new todo under the stack)
+

@@ -3,7 +3,9 @@
 -- read arguments
 local args={...}
 local code=table.concat(args, ' ')
-if code=='' then
+if code=='-' then
+	code=io.read '*a'
+elseif code=='' then
 	io.write '0\n'
 	os.exit(0)
 end
