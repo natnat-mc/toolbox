@@ -7,10 +7,7 @@ for k, v in pairs(math) do
 		_G[k]=v
 	end
 end
-code=[[
-return (function()
-	return (]]..(code~='' and code or '0')..[[)
-end)()]]
+code=[[return (]]..(code~='' and code or '0')..[[)]]
 local fn, err=load(code)
 if fn then
 	print(fn())
