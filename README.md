@@ -45,3 +45,11 @@ Examples:
 - ```todo shift``` (reads and removes the first todo)
 - ```todo unshift``` (adds a new todo under the stack)
 
+### `rep`
+Repeats a string.  
+Examples:
+- ```rep 100 A``` (writes `A` 100 times)
+- ```rep 0 A``` (writes `A` 0 times; in other words, does nothing)
+- ```echo Test | rep 5``` (writes `Test` followed by a newline 5 times)
+- ```rep 1``` (writes stdin one time, essentially piping stdin to stdout)
+
