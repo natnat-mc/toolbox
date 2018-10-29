@@ -8,15 +8,40 @@ if code=='' then
 	os.exit(0)
 end
 
--- compatibility with lua5.1
-local load=loadstring or load
-
 -- copy the math lib into _G
 for k, v in pairs(math) do
 	if not _G[k] then
 		_G[k]=v
 	end
 end
+
+-- compatibility with lua5.1
+load=loadstring or load
+if _VERSION<'Lua 5.2' then
+	local ln=math.log
+	function log(a, b)
+		if not b then
+			return ln(a)
+		end
+		return ln(a)/ln(b)
+	end
+end
+
+-- useful math functions
+function pow(a, b)
+	return a^b
+end
+function log2(a)
+	return log(a, 2)
+end
+function log10(a)
+	return log(a, 10)
+end
+ln=log
+
+-- useful math constants
+e=exp(1)
+inf=huge
 
 -- execute the code
 code=[[return (]]..code..[[)]]
