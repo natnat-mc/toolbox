@@ -1,0 +1,22 @@
+#!/usr/bin/env lua
+
+local args={...}
+local n=args[1]
+
+math.randomseed(os.time())
+
+if n=='choice' then
+	local choices={}
+	for l in io.lines() do
+		table.insert(choices, l)
+	end
+	io.write(choices[math.random(#choices)])
+elseif tonumber(n) and tonumber(n)>0 and tonumber(n)%1==0 then
+	io.write(math.random(tonumber(n)))
+else
+	io.stderr:write "Usage:\n"
+	io.stderr:write "\troll <n>\n"
+	io.stderr:write "\t\tRolls a pseudorandom integer between 1 and n inclusive\n"
+	io.stderr:write "\troll choice\n"
+	io.stderr:write "\t\tReturns a random line from stdin, without the trailing eol\n"
+end

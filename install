@@ -127,7 +127,7 @@ local function install(script)
 end
 
 -- install all scripts individually
-local scripts={'=', 'ccx', 'makefilegen', 'todo', 'rep'}
+local scripts={'=', 'ccx', 'makefilegen', 'todo', 'rep', 'roll'}
 for i, script in ipairs(scripts) do
 	local skip=false
 	if os.execute('[ -f "'..installdir..'/'..script..'" ]') then

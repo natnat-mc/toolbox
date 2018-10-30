@@ -53,3 +53,12 @@ Examples:
 - ```echo Test | rep 5``` (writes `Test` followed by a newline 5 times)
 - ```rep 1``` (writes stdin one time, essentially piping stdin to stdout)
 
+### `roll`
+Rolls a dice. 
+The result is pseudorandom, and its seed is the system time, in seconds: **do not use this where tandomness is actually expected**. 
+Can also be used to select a random line from stdin. 
+Examples:
+- ```roll 6``` (rolls a dice)
+- ```roll 100``` (returns a number between 1 and 100)
+- ```cat /etc/passwd | roll choice``` (returns a random entry from `/etc/passwd`)
+
