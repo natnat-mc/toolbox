@@ -123,6 +123,7 @@ local function install(script)
 		fd:write '\n'
 	end
 	fd:close()
+	os.execute('chmod +x "'..output..'"')
 	return true
 end
 
