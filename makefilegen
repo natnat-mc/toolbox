@@ -105,10 +105,16 @@ table.insert(rules, {
 	deps=objects,
 	command={ldcommand}
 })
-table.insert(rules, {
-	target='clean',
-	command={'rm -f *.o'}
-})
+do
+	local rmobjects={}
+	for i, obj in ipairs(objects) do
+		table.insert(rmobjects, 'rm -f "'..obj..'"')
+	end
+	table.insert(rules, {
+		target='clean',
+		command=rmobjects
+	})
+end
 table.insert(rules, {
 	target='mrproper',
 	deps={'clean'},
