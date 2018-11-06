@@ -4,14 +4,19 @@ A nice toolbox for developers, written in Lua
 ## Installing the toolbox
 To install the toolbox, a `./install [destination]` script is available.  
 The default installation directory is `$HOME/bin`
-This script will automatically create the destination directory and add it to the path in `~/.profile` (after prompting the user).  
-Then, the script will copy all the utilities into the destination directory, prompting the user if a conflict exists.
+This script will automatically create the destination directory and add it to the path in `~/.profile` (after prompting the user). 
+
+This script will try to use Lua 5.3, and can:
+- find it if it is in the path
+- install it alongside the scripts
+- install it with a custom name
+- embed a polyfill inside the scripts
 
 ## Your tools
 
 ### `=`
 A small calculator on the command line.  
-Concatenates all it arguments and executes the resulting code.  
+Concatenates all its arguments and executes the resulting code.  
 Can also read its arguments from stdin if called like `= -`  
 Examples:
 - ```= 2+2```
@@ -55,7 +60,7 @@ Examples:
 
 ### `roll`
 Rolls a dice. 
-The result is pseudorandom, and its seed is the system time, in seconds: **do not use this where tandomness is actually expected**. 
+The result is pseudorandom, and its seed is the system time, in seconds: **do not use this where randomness is actually expected or required**. 
 Can also be used to select a random line from stdin. 
 Examples:
 - ```roll 6``` (rolls a dice)
