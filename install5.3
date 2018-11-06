@@ -85,7 +85,7 @@ end
 
 -- build lua
 if os.execute "cd lua && make linux" then
-	io.write "Successfully build lua 5.3\n"
+	io.write "Successfully built lua 5.3\n"
 else
 	io.stderr:write "Couldn't build lua5.3\n"
 	os.exit(1)
