@@ -59,27 +59,62 @@ end
 local rewrite={}
 if defaultversion~=5.3 then
 	io.write "Lua version is not 5.3, which could cause compatibility issues\n"
-	local ans=ask("What do you want to do?", {
-		"nothing",
+	
+	-- get ourselves a list of options
+	local options={
+		"continue",
 		"abort",
-		"install future lib",
-		"install Lua 5.3",
-		"force Lua 5.3"
-	})
-	if ans==1 then
+		"package future lib inside scripts"
+	}
+	
+	-- check if we have toolbox-lua available
+	if os.execute 'which toolbox-lua > /dev/null' then
+		io.write "However, toolbox-lua has been found on your machine and can be used\n"
+		table.insert(options, "use toolbox-lua")
+	else
+		table.insert(options, "install lua5.3 as toolbox-lua")
+	end
+	
+	-- check if we have lua5.3 available
+	if os.execute "which lua5.3 > /dev/null" then
+		io.write "However, lua5.3 is available and can be used\n"
+		table.insert(options, "use lua5.3")
+	else
+		table.insert(options, "install lua5.3")
+		table.insert(options, "install lua5.3 as default lua")
+	end
+	
+	local ans=options[ask("What do you want to do?", options)]
+	if ans=="continue" then
 		-- good luck
-	elseif ans==2 then
+	elseif ans=="abort" then
 		os.exit(0)
-	elseif ans==3 then
+	elseif ans=="package future lib inside scripts" then
 		rewrite.future=true
-	elseif ans==4 then
+	elseif ans=="install lua5.3 as toolbox-lua" then
 		rewrite.version='toolbox-lua'
 		if not os.execute('./install5.3 "'..installdir..'" toolbox-') then
-			io.stderr:write "Failed installing Lua 5.3\n"
+			io.stderr:write "Failed installing lua5.3 as toolbox-lua\n"
 			os.exit(1)
 		end
-	elseif ans==5 then
+	elseif ans=="use toolbox-lua" then
+		rewrite.version='toolbox-lua'
+	elseif ans=="install lua5.3" then
 		rewrite.version='lua5.3'
+		if not os.execute('./install5.3 "'..installdir..'" "" 5.3') then
+			io.stderr:write "Failed installing lua5.3\n"
+			os.exit(1)
+		end
+	elseif ans=="install lua5.3 as default lua" then
+		if not os.execute('./install5.3 "'..installdir..'"') then
+			io.stderr:write "Failed installing lua5.3 as default lua\n"
+			os.exit(1)
+		end
+	elseif ans=="use lua5.3" then
+		rewrite.version='lua5.3'
+	else
+		io.stderr:write "Something went horribly wrong\n"
+		os.exit(1)
 	end
 end
 
