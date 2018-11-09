@@ -21,7 +21,7 @@ Can also read its arguments from stdin if called like `= -`
 Examples:
 - ```= 2+2```
 - ```= "sqrt(2)+1"```
-- ```= `stat bin/= | grep Size | cut -d ' ' -f 4` *8``
+- ```= `stat bin/= | grep Size | cut -d ' ' -f 4` *8```
 - ```echo 2+2 | = -```
 
 ### `makefilegen`
@@ -72,7 +72,7 @@ Controls `mpris`-compatible media players from the command line.
 Can be scripted in bash as well as in Lua.  
 Examples:
 - ```media``` (dumps all the info it has)
-- ```media list``` (lists all the media players available```
+- ```media list``` (lists all the media players available)
 - ```media playpause clementine``` (toggles play/pause on clementine)
 - ```media status clementine``` (dumps all it can find on clementine)
 - ```media help``` (you'll clearly need this one)
