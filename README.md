@@ -67,3 +67,13 @@ Examples:
 - ```roll 100``` (returns a number between 1 and 100)
 - ```cat /etc/passwd | roll choice``` (returns a random entry from `/etc/passwd`)
 
+### `media`
+Controls `mpris`-compatible media players from the command line.  
+Can be scripted in bash as well as in Lua.  
+Examples:
+- ```media``` (dumps all the info it has)
+- ```media list``` (lists all the media players available```
+- ```media playpause clementine``` (toggles play/pause on clementine)
+- ```media status clementine``` (dumps all it can find on clementine)
+- ```media help``` (you'll clearly need this one)
+- ```media exec pauseall.lua``` (executes `pauseall.lua` *not in the repo*)

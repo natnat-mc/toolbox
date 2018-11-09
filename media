@@ -1,0 +1,205 @@
+#!/usr/bin/env lua
+
+-- check if a value is in a list
+local function contains(list, value)
+	for i, v in ipairs(list) do
+		if v==value then
+			return true
+		end
+	end
+	return false
+end
+
+-- list all mpris-compatible apps
+local function getapps()
+	local t={}
+	for l in io.popen('qdbus | grep org.mpris.MediaPlayer2'):lines() do
+		table.insert(t, l:match("org%.mpris%.MediaPlayer2%.(%S+)$"))
+	end
+	return t
+end
+
+-- read result of DBus call
+local function readvalue(name, key)
+	local fd=io.popen('qdbus org.mpris.MediaPlayer2.'..name..' /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.'..key)
+	local value=fd:read '*l'
+	fd:close()
+	return value
+end
+
+-- read app status
+local function getstatus(name)
+	local status={}
+	do
+		local st=readvalue(name, 'PlaybackStatus')
+		status.status=st and st:lower()
+	end
+	do
+		local vol=readvalue(name, 'Volume')
+		status.volume=vol and tonumber(vol)
+	end
+	do
+		local pos=readvalue(name, 'Position')
+		status.position=pos and tonumber(pos)
+	end
+	do
+		local fd=io.popen('qdbus org.mpris.MediaPlayer2.'..name..' /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Metadata')
+		for line in fd:lines() do
+			local k, v=line:match('^(%S+): (.+)$')
+			if k then
+				status[k]=v
+			end
+		end
+		fd:close()
+	end
+	return status
+end
+
+-- execute DBus call
+local function exec(name, fn, ...)
+	local args=''
+	local n=select('#', ...)
+	if n~=0 then
+		args=' '..table.concat({...}, 1, n)
+	end
+	return os.execute('qdbus org.mpris.MediaPlayer2.'..name..' /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.'..fn..args)
+end
+
+-- control playback
+local function playpause(name)
+	return exec(name, 'PlayPause')
+end
+local function play(name)
+	return exec(name, 'Play')
+end
+local function pause(name)
+	return exec(name, 'Pause')
+end
+local function stop(name)
+	return exec(name, 'Stop')
+end
+local function volume(name, value)
+	return exec(name, 'Volume', value)
+end
+
+-- create a global table
+media={}
+media.getapps=getapps
+media.readvalue=readvalue
+media.getstatus=getstatus
+media.exec=exec
+media.playpause=playpause
+media.play=play
+media.pause=pause
+media.stop=stop
+media.volume=volume
+
+-- read arguments
+local args={...}
+
+if not args[1] then
+	-- write everything we know about all apps
+	for i, v in ipairs(getapps()) do
+		io.write(v)
+		io.write ':\n'
+		for name, value in pairs(getstatus(v)) do
+			io.write '\t'
+			io.write(name)
+			io.write '\t'
+			io.write(value)
+			io.write '\n'
+		end
+	end
+elseif args[1]=='exec' then
+	-- read script file
+	local fd, code
+	if args[2]=='-' then
+		fd=io.stdin
+	elseif type(args[2])=='string' then
+		fd=io.open(args[2])
+	end
+	if not fd then
+		io.stderr:write "Syntax:\n"
+		io.stderr:write "\tmedia exec <script>\n"
+		io.stderr:write "\t\twhere <script> is a Lua source file which will receive the media lib\n"
+		io.stderr:write "\t\tif <script> is '-' then the standard input will be used instead\n"
+		os.exit(1)
+	end
+	code=fd:read '*a'
+	
+	-- execute script
+	local load=loadstring or load
+	local block, err=load(code, args[2], 't')
+	if block then
+		block()
+	else
+		io.stderr:write "Error loading script:\n"
+		io.stderr:write(err)
+		io.stderr:write "\n"
+		os.exit(1)
+	end
+elseif contains({'play', 'pause', 'stop', 'playpause'}, args[1]) then
+	-- do the specific action on the player
+	if type(args[2])=='string' then
+		local a, b, c=media[args[1]](args[2])
+		if type(a)=='boolean' then
+			return c
+		else
+			return (a and 0 or 1)
+		end
+	else
+		io.stderr:write "Syntax:\n"
+		io.stderr:write "\tmedia play|pause|stop|playpause <player>\n"
+		io.stderr:write "\t\twhere <player> is the internal name of the media player\n"
+		os.exit(1)
+	end
+elseif args[1]=='status' then
+	-- read the status of an app
+	if type(args[2])=='string' then
+		for k, v in pairs(getstatus(args[2])) do
+			io.write(k)
+			io.write '\t'
+			io.write(v)
+			io.write '\n'
+		end
+	else
+		io.stderr:write "Syntax:\n"
+		io.stderr:write "\tmedia status <player>\n"
+		io.stderr:write "\t\twhere <player> is the internal name of the media player\n"
+		os.exit(1)
+	end
+elseif args[1]=='list' then
+	-- lists the available apps
+	for i, v in ipairs(getapps()) do
+		io.write(v)
+		io.write '\n'
+	end
+elseif args[1]=='volume' then
+	if not args[2] or args[3] and not tonumber(args[3]) then
+		io.stderr:write "Syntax:\n"
+		io.stderr:write "\tmedia volume <player> [value]\n"
+		io.stderr:write "\t\twhere <player> is the internal name of the media player\n"
+		io.stderr:write "\t\twhere [volume] is the optional volume to set\n"
+	end
+	if not args[3] then
+		io.write(readvalue(args[2], 'Volume'))
+		io.write '\n'
+	else
+		local a, b, c=volume(args[2], tonumber(args[3]))
+		if type(a)=='boolean' then
+			return c
+		else
+			return (a and 0 or 1)
+		end
+	end
+else
+	-- write syntax
+	io.stderr:write "Syntax:\n"
+	io.stderr:write "\tmedia\n"
+	io.stderr:write "\tmedia list\n"
+	io.stderr:write "\tmedia exec <script>\n"
+	io.stderr:write "\tmedia status <player>\n"
+	io.stderr:write "\tmedia play|pause|stop|playpause <player>\n"
+	io.stderr:write "\tmedia volume <player> [value]\n"
+	os.exit(1)
+end
