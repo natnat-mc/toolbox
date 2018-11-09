@@ -2,21 +2,42 @@
 
 local args={...}
 local n=args[1]
+local m=args[2]
 
 math.randomseed(os.time())
 
+local errored=false
 if n=='choice' then
 	local choices={}
 	for l in io.lines() do
 		table.insert(choices, l)
 	end
 	io.write(choices[math.random(#choices)])
-elseif tonumber(n) and tonumber(n)>0 and tonumber(n)%1==0 then
-	io.write(math.random(tonumber(n)))
+elseif tonumber(n) then
+	n=tonumber(n)
+	m=tonumber(m)
+	if m then
+		if m<n then
+			m, n=n, m
+		end
+		io.write(math.random(n, m))
+	else
+		if n==0 then
+			errored=true
+		else
+			io.write(math.random(n))
+		end
+	end
 else
+	errored=true
+end
+
+if errored then
 	io.stderr:write "Usage:\n"
 	io.stderr:write "\troll <n>\n"
 	io.stderr:write "\t\tRolls a pseudorandom integer between 1 and n inclusive\n"
+	io.stderr:write "\troll <n> <m>\n"
+	io.stderr:write "\t\tRolls a pseudorandom integer between n and m (which don't have to be in order), inclusive\n"
 	io.stderr:write "\troll choice\n"
 	io.stderr:write "\t\tReturns a random line from stdin, without the trailing eol\n"
 end

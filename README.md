@@ -65,6 +65,8 @@ Can also be used to select a random line from stdin.
 Examples:
 - ```roll 6``` (rolls a dice)
 - ```roll 100``` (returns a number between 1 and 100)
+- ```roll 50 60``` (returns a number between 50 and 60)
+- ```roll 50 -50``` (returns a number between -50 and 50)
 - ```cat /etc/passwd | roll choice``` (returns a random entry from `/etc/passwd`)
 
 ### `media`
