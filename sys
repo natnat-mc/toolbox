@@ -1,0 +1,96 @@
+#!/usr/bin/env lua
+
+local function find(class, matcher, lowercase)
+	local fd=io.popen("ls -1 /sys/class/"..class)
+	for line in fd:lines() do
+		if not matcher or (lowercase and line:lower() or line):match(matcher) then
+			fd:close()
+			return line
+		end
+	end
+	fd:close()
+	return nil
+end
+
+local function get(class, device, field)
+	local fd=io.open('/sys/class/'..class..'/'..device..'/'..field, 'r')
+	local value=fd:read '*a'
+	fd:close()
+	local nvalue=tonumber(value)
+	if nvalue~=nil then
+		return nvalue
+	end
+	return value
+end
+
+local function set(class, device, field, value)
+	local fd, err=io.open('/sys/class/'..class..'/'..device..'/'..field, 'w')
+	if not fd then
+		error(err)
+	end
+	fd:write(tostring(value))
+	fd:write '\n'
+	fd:close()
+end
+
+local function printusage(err)
+	local out=err and io.stderr or io.stdout
+	out:write "Usage:\tsys help\n"
+	out:write "\tsys battery\n"
+	out:write "\tsys backlight [value]\n"
+	os.exit(err and 1 or 0)
+end
+
+local ok, err=pcall((function(...)
+	local args={...}
+	local command=table.remove(args, 1)
+	
+	if command=='help' then
+		printusage()
+	elseif command=='battery' then
+		if #args~=0 then
+			return printusage(1)
+		end
+		
+		local dev=find('power_supply', '^bat', true)
+		if not dev then
+			io.stderr:write "Couldn't find battery"
+			os.exit(1)
+		end
+		io.write(get('power_supply', dev, 'capacity'))
+		io.write '\n'
+		os.exit(0)
+	elseif command=='backlight' then
+		local dev=find('backlight')
+		if not dev then
+			io.stderr:write "Couldn't find backlight"
+			os.exit(1)
+		end
+		local max=get('backlight', dev, 'max_brightness')
+		
+		if #args==0 then
+			local val=get('backlight', dev, 'brightness')
+			io.write(math.floor(val/max*100+.5))
+			io.write '\n'
+			os.exit(0)
+		elseif #args==1 and tonumber(args[1]) then
+			local val=math.floor(max/100*tonumber(args[1]))
+			if val>max or val<0 then
+				io.stderr:write "Illegal value for brightness: "
+				io.stderr:write(args[1])
+				io.stderr:write '\n'
+				os.exit(1)
+			end
+			set('backlight', dev, 'brightness', val)
+			os.exit(0)
+		end
+	end
+	
+	printusage(true)
+end), ...)
+
+if not ok then
+	io.stderr:write(err)
+	io.stderr:write '\n'
+	os.exit(1)
+end
