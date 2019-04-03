@@ -1,0 +1,46 @@
+#!/usr/bin/env lua
+
+local args={...}
+local pattern=table.remove(args, 1)
+local options={}
+
+if not pattern then
+	io.stderr:write "Usage: lmatch <pattern> [options]\n"
+	io.stderr:write "\tWhere options include:\n"
+	io.stderr:write "\t-r:\treverse, select all the lines that don't match\n"
+	io.stderr:write "\t-m:\treturn captuting groups instead of the line\n"
+	os.exit(1)
+end
+
+for i, v in ipairs(args) do
+	for k, a in ipairs {'r', 'm'} do
+		if v=='-'..a then
+			options[a]=true
+		end
+	end
+end
+
+if options.m then
+	for match in io.read '*a':gmatch(pattern) do
+		print(match)
+	end
+else
+	for line in io.lines() do
+		local matches={line:match(pattern)}
+		if options.r then
+			if #matches==0 then
+				io.write(line)
+				io.write '\n'
+			end
+		elseif #matches~=0 then
+			if options.m then
+				io.write(table.concat(matches, '\t'))
+				io.write '\n'
+			else
+				io.write(line)
+				io.write '\n'
+			end
+		end
+	end
+end
+
