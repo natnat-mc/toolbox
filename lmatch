@@ -21,9 +21,15 @@ for i, v in ipairs(args) do
 end
 
 if options.m then
-	for match in io.read '*a':gmatch(pattern) do
-		print(match)
-	end
+		local matcher=io.read '*a':gmatch(pattern)
+		while true do
+				local matches={matcher()}
+				if #matches==0 then
+						break
+				end
+				io.write(table.concat(matches, '\t'))
+				io.write '\n'
+		end
 else
 	for line in io.lines() do
 		local matches={line:match(pattern)}
@@ -33,13 +39,8 @@ else
 				io.write '\n'
 			end
 		elseif #matches~=0 then
-			if options.m then
-				io.write(table.concat(matches, '\t'))
-				io.write '\n'
-			else
-				io.write(line)
-				io.write '\n'
-			end
+			io.write(line)
+			io.write '\n'
 		end
 	end
 end
