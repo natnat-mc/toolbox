@@ -1,0 +1,44 @@
+#!/usr/bin/env lua
+local args={...}
+local mode=args[1] or 'upper'
+
+local transforms={}
+transforms.upper=string.upper
+transforms.lower=string.lower
+do
+		local parity
+		local u, l=string.upper, string.lower
+		function transforms.alternate(c)
+				parity=not parity
+				if parity then
+						return u(c)
+				else
+						return l(c)
+				end
+		end
+end
+do
+		local u, l=string.upper, string.lower
+		function transforms.random(c)
+				if math.random(1, 2)==1 then
+						return u(c)
+				else
+						return l(c)
+				end
+		end
+end
+
+local t=transforms[mode]
+local r=io.read
+local w=io.write
+if t then
+		local c=r(1)
+		while c do
+				w(t(c))
+				c=r(1)
+		end
+else
+		io.write "Usage: upper [mode]\n"
+		io.write "\twhere mode is one of 'upper', 'lower', 'alternate', 'random'\n"
+end
+
