@@ -1,7 +1,7 @@
 #!/usr/bin/env lua
 
 -- options
-local todofile=io.popen('echo -n "$HOME"'):lines()()..'/.todofile'
+local todofile=os.getenv('HOME')..'/.todofile'
 
 -- read command line arguments
 local args={...}
@@ -12,7 +12,7 @@ local text=table.concat(args, ' ')
 local function readfile()
 	local fd=io.open(todofile, 'r')
 	if not fd then
-		io.popen('touch "'..todofile..'"')
+		os.execute('touch "'..todofile..'"')
 		return {}
 	end
 	local values={}
@@ -87,6 +87,9 @@ end
 local function count()
 	io.write(#readfile()..'\n')
 end
+local function edit()
+		os.execute((os.getenv 'EDITOR' or 'vi')..' '..todofile)
+end
 
 local subs={}
 subs.pop=pop
@@ -100,6 +103,8 @@ subs.list=list
 subs.ls=list
 subs.count=count
 subs.n=count
+subs.edit=edit
+subs.vi=edit
 
 -- execute subcommand
 local sub=subs[command]
