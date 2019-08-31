@@ -13,6 +13,31 @@ if n=='choice' then
 		table.insert(choices, l)
 	end
 	io.write(choices[math.random(#choices)])
+elseif n=='magic' then
+	local choices={
+		"As I see it, yes",
+		"Don't count on it",
+		"Yes",
+		"Outlook good",
+		"Concentrate and ask again",
+		"Yes, definitely",
+		"Signs point to yes",
+		"It is decidedly so",
+		"Ask again later",
+		"Most likely",
+		"Outlook not so good",
+		"My sources say no",
+		"Better not tell you now",
+		"You may rely on it",
+		"Without a doubt",
+		"Very doubtful",
+		"Cannot predict now",
+		"Reply hazy try again",
+		"It is certain",
+		"My reply is no"
+	}
+	io.write(choices[math.random(#choices)])
+	io.write '\n'
 elseif tonumber(n) then
 	n=tonumber(n)
 	m=tonumber(m)
@@ -40,4 +65,6 @@ if errored then
 	io.stderr:write "\t\tRolls a pseudorandom integer between n and m (which don't have to be in order), inclusive\n"
 	io.stderr:write "\troll choice\n"
 	io.stderr:write "\t\tReturns a random line from stdin, without the trailing eol\n"
+	io.stderr:write "\troll magic\n"
+	io.stderr:write "\t\tRolls a magic 20 (aka magic 8 pool)\n"
 end
